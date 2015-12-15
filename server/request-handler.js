@@ -1,4 +1,6 @@
 var url = require('url');
+var fs = require('fs');
+
 var headers = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -10,7 +12,7 @@ var objectId = 1;
 
 var messages = [
     // {
-    //   message: 'Hello World',
+    //   text: 'Hello World',
     //   username: 'anonymous',
     //   objectId: objectId
     // }
@@ -39,6 +41,7 @@ var actions = {
   'POST': function(request, response){
     createMessage(request, function(message){
       messages.push(message);
+      fs.appendFile('./messages.txt', JSON.stringify(message) + '\n');
       message.objectId = ++objectId;
       sendResponse(response, {objectId: 1}, 201);
     });
@@ -52,7 +55,6 @@ var requestHandler  = function(request, response) {
 
   // The outgoing status.
   var pathName = request.url
-  // console.log(pathName);
   var action = actions[request.method];
   if(action && pathName.search(/(classes)/) > 0){
     action(request, response);
