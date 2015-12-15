@@ -24,23 +24,20 @@ function createMessage(request, callback){
   });
 }
 
-module.exports = function(request, response, status) {
+var requestHandler  = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
-  var statusCode = status || 200;
+  var statusCode = 200;
   var pathName = request.url
   // console.log(pathName);
-  request.on('data', function(data){
-    console.log(data);
-  })
+
   if (request.method === 'GET' && pathName.search(/(classes)/) > 0){
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify({results: messages}));
   } else if (request.method === 'POST') {
     createMessage(request, function(message){
       messages.push(message);
-      console.log(messages);
       response.writeHead(201, headers);
       response.end(null);
     });
@@ -54,4 +51,5 @@ module.exports = function(request, response, status) {
   // }
 
 };
- 
+
+exports.requestHandler = requestHandler;
