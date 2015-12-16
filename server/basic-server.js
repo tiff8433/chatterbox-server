@@ -13,8 +13,23 @@
 // server.listen(port, ip);
 /****************************************/
 var express = require("express");
+var fs = require('fs');
+var cors = require('cors');
 var app = express();
-var messages;
+var messages = [];
+
+var server = app.listen(3000, function(){
+  var host = server.address().address;
+  var port = server.address().port;
+});
+
+var headers = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "Origin, content-type, accept",
+  "access-control-max-age": 10, // Seconds.
+  'Content-Type': "application/json"
+};
 
 function createMessage(request, callback){
   var results = '';
@@ -22,32 +37,22 @@ function createMessage(request, callback){
     results += data;
   });
   request.on('end', function(){
-    callback(JSON.parse(results));
+    callback(results);
   });
 }
 
-var headers = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10, // Seconds.
-  'Content-Type': "application/json"
-};
+app.use(cors())
 
-app.get('/classes', function(request, response){
-  response.header(headers).status(200).send(messages);
+app.get('/classes/messages', function(request, response){
+  response.header(headers).status(200).send({results: messages});
 });
 
-app.post('/classes', function(request, response){
+app.post('/classes/messages', function(request, response){
   createMessage(request, function(message){
-    messages.push(message);
-    fs.appendFile('./messages.txt', JSON.stringify(message) + '\n');
-    message.objectId = ++objectId;
-    response.header(headers).status(201).send();
+    messages.push(JSON.parse(message));
+    console.log('inpost', messages)
+    fs.writeFile('./messages.txt', JSON.stringify(message) + '\n');
+    //message.objectId = ++objectId;
   });
-});
-
-var server = app.listen(3000, function(){
-  var host = server.address().address;
-  var port = server.address().port;
+  response.header(headers).status(201).send();
 });
